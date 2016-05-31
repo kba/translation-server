@@ -14,7 +14,7 @@ ENV ARCHITECTURE linux-x86_64
 
 WORKDIR opt
 
-RUN apt-get update && apt-get install -y curl git fontconfig libasound2 libatk1.0-0 libc6 libcairo2 libdbus-1-3 libdbus-glib-1-2 libevent-2.0-5 libffi6 libfontconfig1 libfreetype6 libgcc1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk2.0-0 libhunspell-1.3-0 libpango-1.0-0 libsqlite3-0 libstartup-notification0 libstdc++6 libx11-6 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrender1 libxt6 procps zlib1g \
+RUN apt-get update && apt-get install -y curl git firefox \
     && git clone --recursive "https://github.com/zotero/translation-server" \
     && cd translation-server \
     && curl -o xulrunner.tar.bz2 \
