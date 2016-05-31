@@ -2,6 +2,11 @@
 # https://github.com/zotero/translation-server
 # 
 # USAGE:
+#
+# $ docker run -d --rm --port 1969:1969 --name zts-container 'kbai/zotero-translation-server'
+#
+# or
+#
 # $ docker build -t zts -f Dockerfile .
 # $ docker run -d --rm --port 1969:1969 --name zts-container zts
 # 
@@ -24,9 +29,9 @@ RUN apt-get update && apt-get install -y curl git firefox \
     && sed -i \
         -e 's,/Users/simon/Desktop/Development/FS/zotero/translators,/opt/translation-server/modules/zotero/translators,' \
         config.js \
-    && ./build.sh
-    && find . -name '.git' -exec rm -rf {} \;
-    && apt-get remove git curl
+    && ./build.sh \
+    && apt-get --purge -y remove git curl \
+    && find /opt/translation-server -depth -name ".git" -exec rm -rvf "{}" \;
 
-CMD bash build/run_translation-server.sh
+CMD cd translation-server && bash build/run_translation-server.sh
 
