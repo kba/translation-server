@@ -49,6 +49,7 @@ cp -r "$CWD/src/"* \
 	"$XPCOMDIR/openurl.js" \
 	"$XPCOMDIR/server.js" \
 	"$XPCOMDIR/utilities.js" \
+	"$XPCOMDIR/utilities_internal.js" \
 	"$XPCOMDIR/utilities_translate.js" \
 	"$XPCOMDIR/xregexp" \
 	"$EXTENSIONDIR/chrome/content/zotero/tools/testTranslators/translatorTester.js" \

@@ -41,6 +41,7 @@ const xpcomFiles = [
 	'translation/translate_firefox',
 	'translation/tlds',
 	'utilities',
+	'utilities_internal',
 	'utilities_translate',
 	'translate_item',
 	'connector/translator',
@@ -130,6 +131,11 @@ if(arguments[0] === "-test" && arguments[1]) {
 	});
 	while(!shouldExit) mainThread.processNextEvent(true);
 } else {
-	Zotero.init(arguments[0] === "-port" ? arguments[1] : undefined);
-	while(true) mainThread.processNextEvent(true);
+    Components.utils.reportError("yay");
+	try {
+        Zotero.init(arguments[0] === "-port" ? arguments[1] : undefined);
+        while(true) mainThread.processNextEvent(true);
+    } catch (e) {
+		Components.utils.reportError("Exception " + JSON.stringify(e));
+    }
 }
