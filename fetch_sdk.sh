@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-SDK_VERSION=${SDK_VERSION:-48.0}
+SDK_VERSION=${SDK_VERSION:-47.0}
 case "$(uname -s)" in
    Darwin)
        if [[ "$(uname -m)" != 'x86_64' ]];then

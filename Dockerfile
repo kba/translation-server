@@ -13,8 +13,6 @@ WORKDIR /opt/zts
 
 COPY . .
 
-# See makefile for variables, e.g.
-# make SDK_VERSION=45.0 build
 RUN apt-get update \
     && apt-get install -y make wget firefox \
     && bash fetch_sdk.sh \
