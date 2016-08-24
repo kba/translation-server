@@ -1,7 +1,8 @@
-.*
 xulrunner*
 firefox*
 build
 *.log
 README.md
 Dockerfile
+.git/modules
+modules

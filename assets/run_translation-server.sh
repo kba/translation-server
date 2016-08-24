@@ -5,5 +5,7 @@ cd "$CALLDIR"
 if [[ "`uname`" == CYGWIN* ]]; then
 	./xpcshell.exe -v 180 -mn translation-server/init.js "$@"
 else
+    echo "I LIVE"
 	LD_LIBRARY_PATH="$CALLDIR:$LD_LIBRARY_PATH" ./xpcshell -v 180 -mn translation-server/init.js "$@"
+    echo $?
 fi

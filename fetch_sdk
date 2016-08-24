@@ -1,58 +1,117 @@
 #!/bin/bash
-set -euo pipefail
+set -e
 
+SDK_VERSION=${SDK_VERSION:-$1}
 SDK_VERSION=${SDK_VERSION:-48.0.2}
-case "$(uname -s)" in
-   Darwin)
-	   if [[ "$(uname -m)" != 'x86_64' ]];then
-		   echo "Unsupported architecture '$(uname -a)'"
-		   exit 1
-	   fi
-	   SDK_OS='mac-x86_64'
-	   SDK_TARBALL_EXT="tar.bz2"
-	   ;;
-   Linux)
-	   SDK_OS="linux-$(uname -m)"
-	   SDK_TARBALL_EXT="tar.bz2"
-	   ;;
-   CYGWIN*|MINGW32*|MSYS*)
-	   if [[ "$(uname -m)" = 'x86_64' ]];then
-		   SDK_OS='win64'
-	   else
-		   SDK_OS='win32'
-	   fi
-	   SDK_TARBALL_EXT="zip"
-	   ;;
-   *) echo 'Unsupported operating system'; exit 1 ;;
-esac
-SDK_TARBALL="firefox-$SDK_VERSION.$SDK_OS.sdk.$SDK_TARBALL_EXT"
-SDK_URL="https://archive.mozilla.org/pub/firefox/releases/$SDK_VERSION/$SDK_TARBALL"
 
-# Remove old XULRunner directory if it exists
-if [[ -e "xulrunner-sdk" ]];then
-	rm -rf "xulrunner-sdk"
-fi
-if [[ -e "firefox-sdk" ]];then
-	rm -rf "firefox-sdk"
-fi
-if [[ -e "$SDK_TARBALL" ]];then
-	rm -f "$SDK_TARBALL"
-fi
-wget --progress=bar:force "$SDK_URL"
-if [[ "$SDK_TARBALL_EXT" = "tar.bz2" ]];then
-	tar --exclude=browser \
-		--exclude='crashreporter*' \
-		--exclude='updater*' \
-		--exclude='plugin-container*' \
-		--exclude='*.png' \
-		--exclude=browser \
-		--exclude=host \
-		--exclude=include \
-		--exclude=idl \
-		--exclude=firefox-sdk/lib/ \
-		--exclude=firefox-sdk/sdk/lib/ \
-		-vxf "$SDK_TARBALL"
+logerror () { echo -e "[\033[32merror\033[0m] $(date) - $*" 2>&1; }
+loginfo () { echo -e "[\033[32minfo\033[0m] $(date) - $*" 2>&1; }
+
+#
+# For Gecko <= 41.0.1
+#
+setup_xulrunner () {
+	SDK_DIR="xulrunner-sdk"
+	case "$(uname -s)" in
+		Darwin)
+			SDK_OS="mac-$(uname -m)"
+			SDK_TARBALL_EXT="tar.bz2"
+			;;
+		Linux) 
+			SDK_OS="linux-$(uname -m)"
+			SDK_TARBALL_EXT="tar.bz2"
+			;;
+		CYGWIN*|MINGW32*|MSYS*)
+			if [[ "$(uname -m)" = 'x86_64' ]];then
+				SDK_OS='win64'
+			else
+				SDK_OS='win32'
+			fi
+			SDK_TARBALL_EXT="zip"
+			;;
+		*) logerror 'Unsupported operating system'; exit 1 ;;
+	esac
+	SDK_TARBALL="xulrunner-$SDK_VERSION.en-US.$SDK_OS.sdk.$SDK_TARBALL_EXT"
+	SDK_URL="https://ftp.mozilla.org/pub/xulrunner/releases/$SDK_VERSION/sdk/$SDK_TARBALL"
+}
+
+#
+# For Gecko >= 42
+#
+setup_firefox_sdk () {
+	SDK_DIR="firefox-sdk"
+	case "$(uname -s)" in
+		Darwin)
+			if [[ "$(uname -m)" != 'x86_64' ]];then
+				logerror "Unsupported architecture '$(uname -a)'"
+				exit 1
+			fi
+			SDK_OS='mac-x86_64'
+			SDK_TARBALL_EXT="tar.bz2"
+			;;
+		Linux) 
+			SDK_OS="linux-$(uname -m)"
+			SDK_TARBALL_EXT="tar.bz2"
+			;;
+		CYGWIN*|MINGW32*|MSYS*)
+			if [[ "$(uname -m)" = 'x86_64' ]];then
+				SDK_OS='win64'
+			else
+				SDK_OS='win32'
+			fi
+			SDK_TARBALL_EXT="zip"
+			;;
+		*) echo 'Unsupported operating system'; exit 1 ;;
+	esac
+	SDK_TARBALL="firefox-$SDK_VERSION.$SDK_OS.sdk.$SDK_TARBALL_EXT"
+	SDK_URL="https://archive.mozilla.org/pub/firefox/releases/$SDK_VERSION/$SDK_TARBALL"
+}
+
+#
+# Remove existing, download, unpack, remove tarball
+#
+download_sdk () {
+	if [[ -e "$SDK_DIR" ]];then
+		loginfo "Remove existing $SDK_DIR"
+		rm -rf "$SDK_DIR"
+	fi
+	if [[ -e "$SDK_TARBALL" ]];then
+		loginfo "Remove existing $SDK_TARBALL"
+		rm -f "$SDK_TARBALL"
+	fi
+	loginfo "Downloading from $SDK_URL"
+	wget --progress=bar:force "$SDK_URL"
+	loginfo "Unpacking $SDK_TARBALL"
+	if [[ "$SDK_TARBALL_EXT" = "tar.bz2" ]];then
+		tar --exclude=browser \
+			--exclude='crashreporter*' \
+			--exclude='updater*' \
+			--exclude='plugin-container*' \
+			--exclude='*.png' \
+			--exclude=browser \
+			--exclude=host \
+			--exclude=include \
+			--exclude=idl \
+			--exclude=firefox-sdk/lib/ \
+			--exclude=firefox-sdk/sdk/lib/ \
+			-vxf "$SDK_TARBALL"
+	else
+		unzip "$SDK_TARBALL"
+	fi
+	loginfo "Remove downloaded $SDK_TARBALL"
+	rm "$SDK_TARBALL"
+}
+
+loginfo "$0 started"
+if (( ${SDK_VERSION:0:2} >= 42 ));then
+	loginfo "$SDK_VERSION -> Firefox SDK"
+	setup_firefox_sdk
 else
-	unzip "$SDK_TARBALL"
+	loginfo "$SDK_VERSION -> XUL Runner"
+	setup_xulrunner
 fi
-rm "$SDK_TARBALL"
+loginfo "Downloading and unpacking"
+download_sdk
+loginfo "$0 finished"
+
+# vim: set et:
